@@ -1,0 +1,17 @@
+{
+  "id": "com.flickertalk.drive",
+  "name": "My drive",
+  "version": "1.0.0",
+  "minCoreVersion": "1.1.0",
+  "components": [
+    "ft-drive"
+  ],
+  "permissions": {
+    "drive": true,
+    "send": "propose"
+  },
+  "opens": [
+    "*/*"
+  ],
+  "summary": "Your files, sealed on the phone, in your own Google Drive."
+}
