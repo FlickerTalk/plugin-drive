@@ -25,11 +25,12 @@ el código de recuperación.** Nuestro servidor no participa (`§100`).
 - Uso del drive y cuota de la nube, si el proveedor la dice.
 
 La copia de seguridad del teléfono (historial + ficheros) va por el mismo drive, pero desde
-Ajustes → Copia de seguridad de la app, no desde el plugin.
+Ajustes → Copia de seguridad de la app, no desde el plugin. Crear el drive y abrir uno de otro
+teléfono, también: piden la frase de recuperación, que solo se escribe allí (2026-09-28).
 
 ## Qué usa del núcleo
 
-`ft.drive.*` (permiso `drive`): `status`, `connect`, `setup`, `unlock`, `list`, `mkdir`, `rename`,
+`ft.drive.*` (permiso `drive`): `status`, `connect`, `list`, `mkdir`, `rename`,
 `move`, `remove`, `upload`, `keep`, `open`, `save`, `send`, `retry`, `cancel`. Y `onOpen`
 (`file` con nombre y tipo, `ref`, `lang`). Necesita el núcleo **1.1.0**. El contrato está en
 [plugin-sdk](https://github.com/FlickerTalk/plugin-sdk).

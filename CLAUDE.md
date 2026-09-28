@@ -13,8 +13,10 @@ propio; el paquete lo firma y publica el catálogo (`FlickerTalk/web`).
 
 - **Ni un byte de fichero pasa por el marco**: subir es `ft.drive.upload` (el selector lo abre
   la app), guardar desde el chat es `ft.drive.keep` (por el `ref`), abrir/guardar/enviar son ids.
-  Tokens, clave del drive y código de recuperación viven en el núcleo; el código se enseña una
-  vez y el plugin lo olvida al cerrar la tarjeta.
+  Tokens, clave del drive y frase de recuperación viven en el núcleo o en la cabeza del usuario:
+  **la frase nunca pasa por el marco** (2026-09-28). Crear el drive y abrir uno de otro teléfono
+  se hace en Ajustes → Copia de seguridad de la app; el plugin lo dice y no pide nada (el núcleo
+  rechaza `setup` y `unlock` desde un plugin). Versión 1.1.0.
 - Todo estado es el del núcleo (`ft.drive.status`); el plugin no guarda nada en `ft.store`.
 - Estados honestos: lo pendiente se enseña con su motivo; un fallo se dice, nunca se finge.
 - Iconos: solo los que presta el núcleo (`./icon/<nombre>.svg`). Textos: solo del catálogo, cada
