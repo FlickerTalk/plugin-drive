@@ -154,28 +154,27 @@ describe("the plugin", () => {
     globalThis.prompt = () => "Docs";
   });
 
-  it("walks the user from no cloud to a drive, showing the recovery code once", async () => {
+  // The recovery phrase (2026-09-28) is typed only in the app's Settings → Backup: the plugin
+  // connects the cloud, but setting the drive up or opening one from another phone is done there.
+  it("connects the cloud and sends the user to Settings to set the drive up", async () => {
     await mountWith("none");
     expect(inside().textContent).toContain("No cloud connected");
     await press("connect");
     expect(core.ft.drive.connect).toHaveBeenCalledWith("google");
     expect(inside().textContent).toContain("has no FlickerTalk drive yet");
-    await press("setup");
-    expect(inside().querySelector("[data-code]").textContent).toBe("ABCDE-FGHJK-MNPQR-STVWX-YZ012-34567");
-    await press("codeDone");
-    expect(inside().querySelector("[data-code]")).toBeNull();
-    expect(inside().textContent).toContain("Nothing here yet");
+    expect(inside().textContent).toContain("Settings → Backup");
+    expect(inside().querySelector('[data-act="setup"]')).toBeNull();
+    expect(core.ft.drive.setup).not.toHaveBeenCalled();
   });
 
-  it("opens a drive from another phone only with its code", async () => {
-    await mountWith("locked");
-    expect(inside().textContent).toContain("from another phone");
-    inside().querySelector('input[name="code"]').value = "WRONG";
-    await press("unlock");
-    expect(inside().querySelector("[role='alert']").textContent).toContain("Something went wrong");
-    inside().querySelector('input[name="code"]').value = "GOOD";
-    await press("unlock");
-    expect(inside().textContent).toContain("Nothing here yet");
+  it("asks for no phrase for a drive from another phone: that is for Settings too", async () => {
+    for (const state of ["locked", "outdated"]) {
+      await mountWith(state);
+      expect(inside().textContent).toContain("Settings → Backup");
+      expect(inside().querySelector("input")).toBeNull();
+      expect(inside().querySelector('[data-act="unlock"]')).toBeNull();
+    }
+    expect(core.ft.drive.unlock).not.toHaveBeenCalled();
   });
 
   it("makes folders, uploads into them, walks the trail and acts on a file", async () => {

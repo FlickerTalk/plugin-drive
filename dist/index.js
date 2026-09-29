@@ -1,7 +1,7 @@
 // My drive for FlickerTalk (plan-drive, 2026-09-27): the user's files, sealed on the phone, in
 // the user's own Google Drive. The core does the login, the sealing and the cloud; this frame is
 // only the shelves: folders, files, what waits to go up. It never sees a byte of a file, a token
-// or the recovery code.
+// or the recovery phrase: the drive is set up and opened only in the app's Settings (2026-09-28).
 
 import { t } from "./i18n.js";
 
@@ -85,7 +85,6 @@ li .open { flex: 1; text-align: start; border: 0; border-radius: 0; height: auto
 .warn { color: var(--accent); margin: 8px 0; }
 .card { text-align: center; padding: 30px 0; }
 .card .big { width: 56px; height: 56px; margin: 0 auto 12px; }
-.code { display: block; padding: 12px; border-radius: 10px; background: var(--line); font: 17px monospace; letter-spacing: 1px; margin: 12px 0; user-select: all; word-break: break-all; }
 .actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .row { display: flex; gap: 6px; margin: 8px 0; }
 `;
@@ -107,7 +106,6 @@ class Drive extends HTMLElement {
     this.listing = { folders: [], files: [], pending: [] };
     this.selected = null;
     this.handed = null;
-    this.code = "";
     this.warning = "";
     this.notice = "";
     this.working = false;
@@ -118,7 +116,6 @@ class Drive extends HTMLElement {
     this.root.innerHTML = `<style>${STYLE}</style><div class="view"></div>`;
     this.view = this.root.querySelector(".view");
     this.root.addEventListener("click", (event) => this.onClick(event));
-    this.root.addEventListener("keydown", (event) => this.onKey(event));
     globalThis.ft?.onOpen?.((opening) => this.onOpen(opening));
     this.paint();
   }
@@ -181,20 +178,6 @@ class Drive extends HTMLElement {
         return globalThis.ft.close();
       case "connect":
         return this.step(() => drive.connect("google"));
-      case "setup":
-        return this.step(async () => {
-          const code = await drive.setup();
-          if (code === false) return false;
-          this.code = code;
-          return true;
-        });
-      case "codeDone":
-        this.code = "";
-        return this.paint();
-      case "unlock": {
-        const typed = this.view.querySelector('input[name="code"]')?.value ?? "";
-        return this.step(() => drive.unlock(typed));
-      }
       case "go":
         this.folder = id || null;
         this.selected = null;
@@ -253,10 +236,6 @@ class Drive extends HTMLElement {
     }
   }
 
-  onKey(event) {
-    if (event.key === "Enter" && event.target.name === "code") this.onClick({ target: this.view.querySelector('[data-act="unlock"]') });
-  }
-
   paint() {
     const T = (key, holes) => t(this.lang, key, holes);
     if (!this.granted) {
@@ -264,17 +243,10 @@ class Drive extends HTMLElement {
       return;
     }
     const state = this.status?.state ?? "none";
-    if (this.code) return this.paintCard("key-outline", T("codeTitle"), `<code class="code" data-code>${escape(this.code)}</code><p class="hint">${escape(T("codeHint"))}</p>`, button("codeDone", T("codeDone"), "checkmark-outline", 'class="on"'));
     if (state === "none") return this.paintCard("cloud-outline", T("none"), `<p class="hint">${escape(T("noneHint"))}</p>`, `<button data-act="connect" class="text on" ${this.working ? "disabled" : ""}>${escape(T("connectGoogle"))}</button>`);
-    if (state === "empty") return this.paintCard("cloud-upload-outline", T("emptyDrive"), "", `<button data-act="setup" class="text on" ${this.working ? "disabled" : ""}>${escape(T("setUp"))}</button>`);
-    if (state === "locked") {
-      return this.paintCard(
-        "lock-closed-outline",
-        T("locked"),
-        `<div class="row"><input name="code" placeholder="${escape(T("codePlaceholder"))}" aria-label="${escape(T("codePlaceholder"))}" autocapitalize="characters"><button data-act="unlock" class="text on" ${this.working ? "disabled" : ""}>${escape(T("unlock"))}</button></div>`,
-        "",
-      );
-    }
+    // The recovery phrase is only ever typed in Settings → Backup: never in this frame.
+    if (state === "empty" || state === "outdated") return this.paintCard("cloud-upload-outline", T("emptyDrive"), `<p class="hint">${escape(T("inSettings"))}</p>`, "");
+    if (state === "locked") return this.paintCard("lock-closed-outline", T("locked"), `<p class="hint">${escape(T("inSettings"))}</p>`, "");
     this.paintShelves();
   }
 
