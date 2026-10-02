@@ -1,7 +1,7 @@
 {
   "id": "com.flickertalk.drive",
   "name": "My drive",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "minCoreVersion": "1.1.0",
   "components": [
     "ft-drive"
@@ -13,5 +13,87 @@
   "opens": [
     "*/*"
   ],
-  "summary": "Your files, sealed on the phone, in your own Google Drive."
+  "summary": "Your files, sealed on the phone, in your own Google Drive.",
+  "locales": {
+    "es": {
+      "name": "Mi drive",
+      "summary": "Tus ficheros, sellados en el teléfono, en tu propio Google Drive."
+    },
+    "pt": {
+      "name": "O meu drive",
+      "summary": "Os seus ficheiros, selados no telefone, no seu próprio Google Drive."
+    },
+    "fr": {
+      "name": "Mon drive",
+      "summary": "Vos fichiers, scellés sur le téléphone, dans votre propre Google Drive."
+    },
+    "de": {
+      "name": "Mein Laufwerk",
+      "summary": "Deine Dateien, auf dem Telefon versiegelt, in deinem eigenen Google Drive."
+    },
+    "it": {
+      "name": "Il mio drive",
+      "summary": "I tuoi file, sigillati sul telefono, nel tuo Google Drive."
+    },
+    "ro": {
+      "name": "Drive-ul meu",
+      "summary": "Fișierele tale, sigilate pe telefon, în propriul tău Google Drive."
+    },
+    "ru": {
+      "name": "Мой диск",
+      "summary": "Ваши файлы, запечатанные на телефоне, в вашем собственном Google Диске."
+    },
+    "uk": {
+      "name": "Мій диск",
+      "summary": "Ваші файли, запечатані на телефоні, у вашому власному Google Диску."
+    },
+    "pl": {
+      "name": "Mój dysk",
+      "summary": "Twoje pliki, zapieczętowane na telefonie, we własnym Dysku Google."
+    },
+    "tr": {
+      "name": "Sürücüm",
+      "summary": "Dosyaların, telefonda mühürlenmiş halde, kendi Google Drive'ında."
+    },
+    "ar": {
+      "name": "قرصي",
+      "summary": "ملفاتك، مختومة على الهاتف، في Google Drive الخاص بك."
+    },
+    "hi": {
+      "name": "मेरी ड्राइव",
+      "summary": "आपकी फ़ाइलें, फ़ोन पर सीलबंद, आपके अपने Google Drive में।"
+    },
+    "bn": {
+      "name": "আমার ড্রাইভ",
+      "summary": "আপনার ফাইল, ফোনে সিলমোহর করা, আপনার নিজের Google Drive-এ।"
+    },
+    "id": {
+      "name": "Drive saya",
+      "summary": "Berkas Anda, tersegel di ponsel, di Google Drive milik Anda sendiri."
+    },
+    "vi": {
+      "name": "Ổ của tôi",
+      "summary": "Tệp của bạn, được niêm phong trên điện thoại, trong Google Drive của chính bạn."
+    },
+    "th": {
+      "name": "ไดรฟ์ของฉัน",
+      "summary": "ไฟล์ของคุณ ผนึกไว้บนโทรศัพท์ ใน Google Drive ของคุณเอง"
+    },
+    "ja": {
+      "name": "マイドライブ",
+      "summary": "あなたのファイルを端末で封印し、自分の Google ドライブに保管します。"
+    },
+    "ko": {
+      "name": "내 드라이브",
+      "summary": "내 파일을 휴대폰에서 봉인해 내 Google 드라이브에 보관합니다."
+    },
+    "zh-CN": {
+      "name": "我的云盘",
+      "summary": "你的文件在手机上密封，存放在你自己的 Google 云端硬盘中。"
+    },
+    "zh-TW": {
+      "name": "我的雲碟",
+      "summary": "你的檔案在手機上密封，存放在你自己的 Google 雲端硬碟中。"
+    }
+  }
 }
