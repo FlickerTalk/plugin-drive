@@ -1,10 +1,36 @@
 // The plugin's own tests (Plan §53, plan-drive §6): the shelves against a fake core. The plugin
 // only asks; the fake core is the drive.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { formatSize, iconOf, trailOf, whenLabel } from "./dist/index.js";
 import { LANGUAGES, catalogueOf, t } from "./dist/i18n.js";
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe("the manifest", () => {
+  const manifest = JSON.parse(readFileSync(join(import.meta.dirname, "module.json"), "utf8"));
+
+  it("names the drive in each of the app's languages with its own title, and sums it up within the schema's limits", () => {
+    const languages = ["es", "pt", "fr", "de", "it", "ro", "ru", "uk", "pl", "tr", "ar", "hi", "bn", "id", "vi", "th", "ja", "ko", "zh-CN", "zh-TW"];
+    const length = (text) => [...text].length; // the schema counts code points, not UTF-16 units
+    expect(Object.keys(manifest.locales ?? {})).toEqual(languages);
+    for (const lang of languages) {
+      const { name, summary, ...rest } = manifest.locales[lang];
+      expect(rest, lang).toEqual({});
+      expect(LANGUAGES, lang).toContain(lang);
+      expect(name, lang).toBe(catalogueOf(lang).title);
+      expect(length(name), lang).toBeLessThanOrEqual(64);
+      expect(summary.trim(), lang).not.toBe("");
+      expect(length(summary), lang).toBeLessThanOrEqual(200);
+    }
+  });
+
+  it("keeps English at the top level, with the plugin's own English title", () => {
+    expect(manifest.name).toBe(catalogueOf("en").title);
+    expect(manifest.summary).toBe("Your files, sealed on the phone, in your own Google Drive.");
+  });
+});
 
 describe("the little helpers", () => {
   it("writes sizes, picks icons and walks the trail of folders", () => {
