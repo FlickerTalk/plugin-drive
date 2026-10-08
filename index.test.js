@@ -30,6 +30,10 @@ describe("the manifest", () => {
     expect(manifest.name).toBe(catalogueOf("en").title);
     expect(manifest.summary).toBe("Your files, sealed on the phone, in your own Google Drive.");
   });
+
+  it("names the Ionicon the Apps grid shows for it", () => {
+    expect(manifest.icon).toBe("cloud-outline");
+  });
 });
 
 describe("the little helpers", () => {
