@@ -1,7 +1,8 @@
 {
   "id": "com.flickertalk.drive",
   "name": "My drive",
-  "version": "1.1.1",
+  "version": "1.1.2",
+  "icon": "cloud-outline",
   "minCoreVersion": "1.1.0",
   "components": [
     "ft-drive"
