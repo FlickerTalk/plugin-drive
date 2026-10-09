@@ -32,8 +32,15 @@ teléfono, también: piden la frase de recuperación, que solo se escribe allí 
 
 `ft.drive.*` (permiso `drive`): `status`, `connect`, `list`, `mkdir`, `rename`,
 `move`, `remove`, `upload`, `keep`, `open`, `save`, `send`, `retry`, `cancel`. Y `onOpen`
-(`file` con nombre y tipo, `ref`, `lang`). Necesita el núcleo **1.1.0**. El contrato está en
+(`file` con nombre y tipo, `ref`, `lang`). Necesita el núcleo **1.6.0**. El contrato está en
 [plugin-sdk](https://github.com/FlickerTalk/plugin-sdk).
+
+Desde la 1.1.3 la ventana va en los envoltorios de Ionic que la app presta al marco (barra en
+`ion-header > ion-toolbar`, cuerpo en `ion-content`, botones de Ionic; carpeta nueva, renombrar y
+quitar se preguntan con `ion-alert`, porque `prompt()` y `confirm()` no responden en el marco), así
+que se ve como el resto de FlickerTalk. Sin ✕ propia: la tiene la ventana de la app. El paquete no
+lleva Ionic: `@ionic/core` es solo `devDependency`, para que los tests pinten lo mismo que el
+teléfono.
 
 ## Desarrollo
 
