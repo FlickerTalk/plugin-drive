@@ -72,6 +72,8 @@ ft-drive button {
 ft-drive button.on { opacity: 1; box-shadow: inset 0 0 0 2px currentColor; }
 ft-drive .i { display: block; width: 22px; height: 22px; margin: auto; background: currentColor; -webkit-mask: var(--i) center/contain no-repeat; mask: var(--i) center/contain no-repeat; }
 ft-drive .i.small { width: 18px; height: 18px; display: inline-block; vertical-align: -4px; margin: 0 6px 0 0; }
+ft-drive ion-button .i[slot="start"] { margin-inline-end: 6px; }
+ft-drive ion-button .i[slot="end"] { margin-inline-start: 6px; }
 ft-drive ul { list-style: none; margin: 0; padding: 0; }
 ft-drive li { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--line); }
 ft-drive li .open { flex: 1; text-align: start; border: 0; border-radius: 0; height: auto; padding: 10px 4px; opacity: 1; min-width: 0; }
