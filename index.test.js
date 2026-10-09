@@ -1,8 +1,8 @@
 // The plugin's own tests (Plan §53, plan-drive §6): the shelves against a fake core. The plugin
 // only asks; the fake core is the drive.
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { formatSize, iconOf, trailOf, whenLabel } from "./dist/index.js";
 import { LANGUAGES, catalogueOf, t } from "./dist/i18n.js";
 
@@ -160,7 +160,19 @@ function fakeCore(state = "none") {
 describe("the plugin", () => {
   let core;
   let element;
-  const inside = () => element.shadowRoot;
+  // In the page, not in a shadow root: Ionic's global styles do not cross a shadow boundary.
+  const inside = () => element;
+  // Ionic moves a button's label to the native button inside it once it has drawn.
+  const label = (one) => one?.getAttribute("aria-label") ?? one?.shadowRoot?.querySelector("button")?.getAttribute("aria-label") ?? null;
+  /** The app's Ionic alert, answered as a tap on one of its buttons would. */
+  const answer = async (role, values) => {
+    let alert = null;
+    for (let wait = 0; wait < 50 && !(alert = document.querySelector("ion-alert")); wait += 1) await tick();
+    if (!alert) throw new Error("no alert");
+    await alert.dismiss(values ? { values } : undefined, role);
+    for (let wait = 0; wait < 6; wait += 1) await tick();
+    return alert;
+  };
   const press = async (act, extra = "") => {
     const button = inside().querySelector(`[data-act="${act}"]${extra}`);
     if (!button) throw new Error(`no button ${act}${extra}`);
@@ -179,9 +191,18 @@ describe("the plugin", () => {
     await tick();
   };
 
+  // The frame has no browser dialogs: confirm() and prompt() answer nothing there.
   beforeEach(() => {
-    globalThis.confirm = () => true;
-    globalThis.prompt = () => "Docs";
+    globalThis.confirm = () => {
+      throw new Error("no browser dialogs in the frame");
+    };
+    globalThis.prompt = globalThis.confirm;
+  });
+  afterEach(async () => {
+    for (const alert of document.querySelectorAll("ion-alert")) await alert.dismiss();
+    delete globalThis.confirm;
+    delete globalThis.prompt;
+    delete globalThis.Ionicons;
   });
 
   // The recovery phrase (2026-09-28) is typed only in the app's Settings → Backup: the plugin
@@ -210,6 +231,8 @@ describe("the plugin", () => {
   it("makes folders, uploads into them, walks the trail and acts on a file", async () => {
     await mountWith("ready", { lang: "es" });
     await press("mkdir");
+    const asked = await answer("confirm", { name: "Docs" });
+    expect(asked.inputs[0]).toMatchObject({ name: "name", placeholder: "Nombre de la carpeta" });
     expect(core.ft.drive.mkdir).toHaveBeenCalledWith("Docs", null);
     expect(inside().textContent).toContain("Docs");
     await press("openFolder", '[data-id="f1"]');
@@ -229,10 +252,14 @@ describe("the plugin", () => {
     expect(core.ft.drive.send).toHaveBeenCalledWith("x1");
     await press("open", '[data-id="x1"]');
     expect(core.ft.drive.open).toHaveBeenCalledWith("x1");
-    globalThis.prompt = () => "renamed.jpg";
     await press("rename", '[data-id="x1"]');
+    expect((await answer("confirm", { name: "renamed.jpg" })).inputs[0].value).toBe("picked.jpg");
     expect(inside().textContent).toContain("renamed.jpg");
     await press("remove", '[data-id="x1"]');
+    expect((await answer("cancel")).message).toContain("renamed.jpg");
+    expect(core.ft.drive.remove).not.toHaveBeenCalled();
+    await press("remove", '[data-id="x1"]');
+    await answer("destructive");
     expect(core.ft.drive.remove).toHaveBeenCalledWith("x1");
     expect(inside().textContent).not.toContain("renamed.jpg");
 
@@ -271,8 +298,68 @@ describe("the plugin", () => {
     await core.open({});
     await tick();
     expect(inside().textContent).toContain("not allowed to use the drive");
-    await press("close");
-    expect(core.ft.close).toHaveBeenCalled();
+    // The app's tool window has the way out.
+    expect(inside().querySelector('[data-act="close"]')).toBeNull();
+  });
+
+  it("asks for an app that lends Ionic", () => {
+    expect(JSON.parse(readFileSync(join(import.meta.dirname, "module.json"), "utf8")).minCoreVersion).toBe("1.6.0");
+  });
+
+  it("draws the drive in the page, in Ionic's header and content, with no close of its own", async () => {
+    await mountWith("ready");
+    expect(element.shadowRoot).toBe(null);
+    const toolbar = element.querySelector(":scope > ion-header > ion-toolbar");
+    for (const act of ["mkdir", "upload"]) {
+      const button = toolbar.querySelector(`ion-button[data-act="${act}"]`);
+      expect(button, act).not.toBeNull();
+      expect(label(button), act).toBeTruthy();
+    }
+    expect(toolbar.querySelector('ion-button[data-act="upload"]').getAttribute("fill")).toBe("solid");
+    expect(element.querySelector(":scope > ion-content .trail")).not.toBeNull();
+    expect(element.querySelector('[data-act="close"]')).toBeNull();
+    await press("upload");
+    await press("select", '[data-id="x1"]');
+    for (const act of ["open", "save", "send", "rename", "remove"]) {
+      const button = element.querySelector(`ion-content ion-button[data-act="${act}"][data-id="x1"]`);
+      expect(button, act).not.toBeNull();
+      expect(label(button), act).toBeTruthy();
+    }
+    expect(element.querySelector('ion-button[data-act="remove"][data-id="x1"]').getAttribute("color")).toBe("danger");
+  });
+
+  it("shows a cloud that is not set up in Ionic's content, with its button", async () => {
+    await mountWith("none");
+    expect(element.querySelector(":scope > ion-header")).toBeNull();
+    expect(element.querySelector(':scope > ion-content ion-button[data-act="connect"]').textContent).toBe("Connect Google Drive");
+  });
+
+  it("draws an Ionicon the app lent by name with ion-icon, and the one it serves otherwise", async () => {
+    await mountWith("ready");
+    expect(element.querySelector('[data-act="mkdir"] [slot="icon-only"]').getAttribute("style")).toContain("./icon/folder-open-outline.svg");
+    globalThis.Ionicons = { map: new Map([["folder-open-outline", "data:image/svg+xml;utf8,<svg></svg>"]]) };
+    element.paint();
+    expect(element.querySelector('[data-act="mkdir"] ion-icon[slot="icon-only"]').getAttribute("name")).toBe("folder-open-outline");
+  });
+});
+
+describe("the package", () => {
+  const dist = join(import.meta.dirname, "dist");
+  const files = readdirSync(dist);
+
+  // Ionic is the app's, lent to the frame: a copy in the package would be a second one, and heavy.
+  it("carries no Ionic of its own", () => {
+    for (const file of files) {
+      const code = readFileSync(join(dist, file), "utf8");
+      expect(code, file).not.toMatch(/@ionic\/core|ionicframework|stencil|defineCustomElement|__registerHost/i);
+      expect(code, file).not.toMatch(/^\s*import\s.*from\s+["'](?!\.\/)/m);
+    }
+  });
+
+  // Small: it is plain code, no library.
+  it("stays under 128 KiB", () => {
+    const bytes = files.reduce((sum, file) => sum + statSync(join(dist, file)).size, 0);
+    expect(bytes).toBeLessThanOrEqual(128 * 1024);
   });
 });
 
